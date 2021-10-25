@@ -1,0 +1,120 @@
+@import url("https://cdn.jsdelivr.net/npm/semantic-ui-calendar-react@latest/dist/umd/semantic-ui-calendar-react.js");
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+input {
+  position: relative;
+  left: 20px;
+}
+p {
+ font-size: medium;
+ position: relative;
+ padding-left: 8px;
+ left: 300px;
+}
+
+h1{
+  font-size: 200;
+  position: relative;
+  left: 600px;
+  
+}
+.app{
+  position: relative;
+  left: 350px;
+}
+
+App-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 1rem;
+}
+table {
+  width: 97%;
+  border: 2px solid;
+  position: relative;
+}
+
+th,
+td {
+  /* border: 1px solid #ffffff; */
+  text-align: left;
+  /* padding: 8px; */
+  font-size: 15px;
+}
+
+th {
+  background-color: rgb(224, 224, 224);
+}
+
+td {
+  background-color: white;
+}
+
+form {
+  display: flex;
+}
+
+form td:last-child {
+  display: flex;
+  /* justify-content: space-evenly; */
+}
+
+form * {
+  font-size: 20px;
+}
+.App-link {
+  color: #61dafb;
+}
+.react-calendar.hide {
+  display: none;
+}
+.react-calendar{
+  position: relative;
+  left: 310px;
+  top: -10px;
+  
+}
+input{
+  border: 1px solid grey;
+  border-radius: 5px;
+  height: 50px;
+}
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#bodyId .ui.create-new-menu-btn {
+  border-radius: 0;
+  background-color: red;
+  }
+
