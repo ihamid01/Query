@@ -1,324 +1,320 @@
-
 import './App.css';
-
 import 'semantic-ui-css/semantic.min.css';
+import 'react-datez/dist/css/react-datez.css';
+import { Button, Form, Select, Grid, Container, Segment, Input, Dropdown, Icon, Pagination } from "semantic-ui-react";
+import { restaurantIdOptions, transactionTimeOptions, compareTypeOptions, metricOptions, operatorTypeOptions, postData, getData, formatData } from './Utility';
+import React, {useEffect, useState} from "react";
+import { ReactDatez } from 'react-datez';
+import moment from "moment";
 
-import { Button, Form, Select, Grid, Container, Segment, Input, Dropdown, Icon, Divider } from "semantic-ui-react";
-
-import { restaurantIdOptions, transactionTimeOptions, operatorTypeOptions, measureOptions as compareTypeOptions, metricOptions } from 'npm/query/src/Utility.js';
-import React, {useState, useEffect} from "react";
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-
-
-const initialFormData = {
-    restaurantIds: [],
-    fromDate: "",
-    toDate: "",
-    fromHour: 6,
-    toHour: 29,
+const initialFormData= {
+    restaurantIds: [], // array
+    fromDate: "", 
+    toDate: "", 
+    fromHour: 6, 
+    toHour: 29, 
     metricCriteria: [{
-        metricCode: [],
-        compareType: [],
+        metricCode: "", 
+        compareType: "", 
         value: "",
-        operatorType: "And"
-    }]
+        operatorType: "And" 
+    }] // array of metric criteria
 };
 
+const itemsPerPage = 20;
 
 function App() {
+    const [theForm, settheForm] = useState(initialFormData);
+    const [metricDefinitions, setMetricDefinitions] = useState([]);
+    const [theResults, settheResults] = useState([]);
+    const [activePage, setactivePage] = useState(1);
 
-    const [restaurantIds, setRestaurantIds] = useState([]);
-    // const [fromHour, setFromHour] = useState(6);
-    // const [toHour, setToHour] = useState(29);
-    const [formData, setFormData] = useState(initialFormData);  
-    // const [metricCriteria, setMetricCriteria] = useState([[{ Metric: [], compareType: [], value: ""}]]);
-    const [compareType, setCompareType] = useState([]);
-    const [operatorType, setOperatorType] = useState([]);
-
-
-     const onSubmit = (async() => {
-         console.log("in onsubmit")
-        const request = {"RestaurantIds": [1],"FromDate": "2020-09-22T00:00:00", "ToDate": "2020-09-22T00:00:00","FromHour": 6, "ToHour": 29, "MetricCriteria":
-        [{"CompareType": "GreaterThan", "OperatorType": null,"MetricCode": "NetAmount","Value": 35}]};
-        JSON.stringify(request);
-        const response = await fetch('https://customsearchqueryapi.azurewebsites.net/Search/Query', {
-            method: 'POST',
-            body: request,
-            headers: {'Content-Type': 'application/json'}
-        });
-        
-        const myJson = await response.json();
-        console.log(myJson);
-    });
-
-    useEffect(async() => {
-
-        const response = await fetch('https://customsearchqueryapi.azurewebsites.net/Search/MetricDefinitions');
-        const myJson = await response.json(); //extract JSON from the http response
-
-        console.log(myJson);
-
+    useEffect(() => {
+        getData("https://customsearchqueryapi.azurewebsites.net/Search/MetricDefinitions")
+            .then(data => {
+                setMetricDefinitions(data);
+            });
     }, []);
 
-
-    function changeVal(data, index){
-        const newFormData = {...formData}
-        newFormData.metricCriteria[index]["value"] - Number(data.value);
-        setFormData(newFormData)
+    function onSubmit() {
+        postData("https://customsearchqueryapi.azurewebsites.net/Search/Query", theForm)
+            .then(data => {
+                settheResults(data);
+            });
     }
 
-    function changeParams(propName, data){
-        const newFormData = {...formData};
-        newFormData[propName] = data.value;
-        setFormData(newFormData);
+    function changeParams(propName, value) {
+        const newtheForm = {...theForm};
+        newtheForm[propName] = value;
+        settheForm(newtheForm);
     }
 
-    function changeMetricCriteria(propName, data, index){
-        const newFormData = {...formData};
-        if (propName === "value"){
-            newFormData.metricCriteria[index][propName] = Number(data.value)
+    function changePage(data) {
+        setactivePage(data.activePage);
+    }
+
+
+    function changeMetricCriteria(propName, data, i) {
+        const newtheForm = {...theForm};
+
+        if (propName === "value") {
+            newtheForm.metricCriteria[i][propName] = Number(data.value);
+        } else {
+            newtheForm.metricCriteria[i][propName] = data.value;
         }
-        else{
-            newFormData.metricCriteria[index][propName] = data.value;
-        }
+        
+        settheForm(newtheForm);
     }
 
-    const addCriteria = () => {
-        const newFormData = {...formData};
-        newFormData.metricCriteria.push(
+    function addCriteria() {
+        const newtheForm = {...theForm};
+        newtheForm.metricCriteria.push(
             {
                 metricCode: "",
                 compareType: "",
                 value: "",
                 operatorType: "And"
             }
-        )
-        setFormData(newFormData);
-    };
+        );
+        settheForm(newtheForm);
+    }
 
-    const handleRemoveClick = (x) => {
-        const newFormData = [...formData];
-        newFormData.metricCriteria.splice(x, 1);
-        setFormData(newFormData);
-      };
+    function removeCriteria(i) {
+        const newtheForm = {...theForm};
+        newtheForm.metricCriteria.splice(i, 1)
+        settheForm(newtheForm);
+    }
 
-    const [date, setDate] = useState(new Date());
-    const [showCalendar, setShowCalendar] = useState(false);
-    const handleChange = value => {
-    setDate(value);
-    setShowCalendar(false);
-   };
-       return (
 
-           <div className="App">
-           
-               <Grid>
-                   <Grid.Row>
-                       <Container>
-                           <Segment className="Segment">
-                               <Grid centered>
-                                   <Grid.Row columns="1">
-                                       <Grid.Column textAlign="center">
-                                           <h3>Custom Search Query Tool</h3>
-                                       </Grid.Column>
-                                   </Grid.Row>
-                                   <Grid.Row columns="1">
-                                       <Grid.Column>
-                                           <Form onSubmit={() => onSubmit()}>
-                                               <Form.Field>
-                                                   <label style={{ fontWeight: "bold" }}>Restaurant Id</label>
-                                                   <Dropdown
+    const slicedtheResults = theResults.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
 
-                                                       options={restaurantIdOptions}
-                                                       placeholder={"Select Restaurant Id"}
-                                                       multiple
-                                                       selection
-                                                       value={formData.restaurantIds}
-                                                       onChange={(event, data) => changeParams( "restaurantIds", data)}
+    return (
+        <div className="App">
+            <Grid className="Grid">
+                <Grid.Row>
+                    <Container className="Container" fluid>
+                        <Segment className="Segment">
+                            <Grid centered>
+                                <Grid.Row columns="1">
+                                    <Grid.Column textAlign="center">
+                                        <h2>Custom Search Query Tool</h2>
+                                    </Grid.Column>
+                                </Grid.Row>
+                                <Grid.Row columns="1">
+                                    <Grid.Column>
+                                        <Form onSubmit={() => onSubmit()}>
+                                            <Form.Field>
+                                                <label style={{fontWeight: "bold"}}>Restaurant Id</label>
+                                                <Dropdown
+                                                    options={restaurantIdOptions}
+                                                    placeholder={"Select Restaurant Id"}
+                                                    multiple
+                                                    selection
+                                                    onChange={(event, data) => changeParams("restaurantIds", data.value)}
+                                                    value={theForm.restaurantIds}
+                                                />
+                                            </Form.Field>
+                                            <Form.Group>
+                                                <Form.Field>
+                                                    <label style={{fontWeight: "bold"}}>From Date</label>
+                                                    <ReactDatez
+                                                        name="dateInput"
+                                                        handleChange={(value) => {changeParams("fromDate", moment(value).format("YYYY-MM-DD"))}}
+                                                        value={theForm.fromDate}
+                                                        allowPast={true}
+                                                        dateFormat={"MM/DD/YYYY"}
+                                                        placeholder={"MM/DD/YYYY"}
+
+                                                    />
+                                                </Form.Field>
+                                                <Form.Field>
+                                                    <label style={{fontWeight: "bold"}}>To Date</label>
+                                                    <ReactDatez
+                                                        name="dateInput"
+                                                        handleChange={(value) => {changeParams("toDate", moment(value).format("YYYY-MM-DD"))}}
+                                                        value={theForm.toDate}
+                                                        allowPast={true}
+                                                        dateFormat={"MM/DD/YYYY"}
+                                                        placeholder={"MM/DD/YYYY"}
+  
+                                                    />
+                                                </Form.Field>
+                                            </Form.Group>
+                                            <Form.Group>
+                                                <Form.Field
+                                                    control={Select}
+                                                    label={"Transaction Time Start"}
+                                                    options={transactionTimeOptions}
+                                                    value={theForm.fromHour}
+                                                    onChange={(event, data) => changeParams("fromHour", data.value)}
+                                                />
+                                                <Form.Field
+                                                    control={Select}
+                                                    label={"Transaction Time End"}
+                                                    options={transactionTimeOptions}
+                                                    value={theForm.toHour}
+                                                    onChange={(event, data) => changeParams("toHour", data.value)}
+                                                />
+                                            </Form.Group>
+                                            {theForm.metricCriteria.map((x, i) => {
+                                                return (
+                                                    <Form.Group key={i}>
+                                                        {theForm.metricCriteria.length > 1 && 
+                                                            <Form.Field width={1}>
+                                                                <div style={{position: "relative", top: "30px", cursor: "pointer"}}>
+                                                                    <Icon name="remove circle" onClick={() => removeCriteria(i)} size="medium" color="red" />
+                                                                </div>
+                                                            </Form.Field>
+                                                        }
+                                                        <Form.Field
+                                                            width={5}
+                                                            control={Select}
+                                                            label={"Metric"}
+                                                            options={metricOptions}
+                                                            placeholder={"Select Metric"}
+                                                            value={theForm.metricCriteria[i].metricCode}
+                                                            onChange={(event, data) => changeMetricCriteria("metricCode", data, i)}
                                                         />
-                                               </Form.Field>
-                                               <Form.Group>
-                                                   <Form.Field
-                                                       control={Select}
-                                                       label={"Transaction Time Start"}
-                                                       options={transactionTimeOptions}
-                                                       value={formData.fromHour}
-                                                       onChange={(event, data) => changeParams("fromHour", data)} />
-                                                   <Form.Field
-                                                       control={Select}
-                                                       label={"Transaction Time End"}
-                                                       options={transactionTimeOptions}
-                                                       value={formData.toHour}
-                                                       onChange={(event, data) => changeParams("toHour", data)} />
-                                                       
-                                               </Form.Group>
-                                               <Form.Group>
-                                                   <Form.Field>
-                                                       <Button onClick={() => addCriteria()} color="violet">Add Criteria</Button>
-                                                   </Form.Field>
-                                               </Form.Group>
-                                               <Form.Field>
-                                                   <Button color="olive" type="submit">
-                                                       Submit
-                                                   </Button>
-                                               </Form.Field>
-                                           </Form>
-                                       </Grid.Column>
-                                   </Grid.Row>
-                                   <Grid.Row>
-                                       <Grid.Column>
-                                           {/* <Form>
-                                               <Form.input>
-                                               <Form.Input style={{ width: 170 }}  label='Date' control={Calendar}
-                                                className={showCalendar ? "" : "hide"}
-                                                value={date}
-                                                onChange={handleChange}    onFocus={() => setShowCalendar(true)} /> 
-                                                    
-                                                  
-                                               </Form.input>
-                                               
-                                           </Form> */}
-                                       <div className='calendar-container'>
-                                            <p style={{ position: 'relative', left: 200 }}>Select Date:
-                                                <input
-                                                    value={date.toLocaleDateString()}
-                                                    onFocus={() => setShowCalendar(true)}
-                                                    readOnly={true} />
-                                            </p>
-                                            <Calendar
-                                                className={showCalendar ? "" : "hide"}
-                                                value={date}
-                                                onChange={handleChange} />
-                                            {/* <Calendar onChange={setDate} value={date} /> */}
-                                        </div>
-                                       </Grid.Column>
-                                   </Grid.Row>
-                                   <Grid.Row>
-                                       <Grid.Column>
-                                       {formData.metricCriteria.map((x, i) => {
-                                        return(
-                                           <Form key={i}>
-                                               {formData.metricCriteria.length > 1 &&
-                                                    <Form.Field>
-                                                        <Button onClick={() => handleRemoveClick(i)}  color="violet">Remove</Button>
-                                                    </Form.Field>
-                                                }
-                                               <Form.Field>
-                                                   <label style={{ fontWeight: "bold" }}>Metric</label>
-                                                   <Dropdown
-                                                       options={metricOptions}
-                                                       placeholder={"Select Metric"}
-                                                       multiple
-                                                       selection
-                                                       value={formData.metricCriteria[i].metricCode}
-                                                       onChange={(event, data) => changeMetricCriteria("metricCode", data, i)}
+                                                        <Form.Field
+                                                            width={4}
+                                                            control={Select}
+                                                            label={"Compare Type"}
+                                                            options={compareTypeOptions}
+                                                            placeholder={"Select Compare Type"}
+                                                            value={theForm.metricCriteria[i].compareType}
+                                                            onChange={(event, data) => changeMetricCriteria("compareType", data, i)}
                                                         />
-                                               </Form.Field>
-                                               <Form.Field>
-                                                   <label style={{ fontWeight: "bold" }}>Metric</label>
-                                                   <Dropdown
-                                                       options={compareTypeOptions}
-                                                       placeholder={"Type"}
-                                                       multiple
-                                                       selection
-                                                       value={formData.metricCriteria[i].compareType}
-                                                       onChange={(event, data) => {changeMetricCriteria("compareType", data, i); setCompareType(data.value)}}
+                                                        <Form.Field
+                                                            width={3}
+                                                            control={Input}
+                                                            label={"Value"}
+                                                            value={theForm.metricCriteria[i].value}
+                                                            onChange={(event, data) => changeMetricCriteria("value", data, i)}
+                                                            placeholder={"Value, e.g. 35"}
                                                         />
-                                               </Form.Field>
-                                               
-                                               <Form.Field
-                                            
-                                                   control={Input}
-                                                   label={"Value"}
-                                                   value={formData.metricCriteria[i].value}
-                                                   onChange={(event, data) => changeVal(data.value, i)}
-                                               />
-                                               <Form.Field>
-                                                   <label style={{ fontWeight: "bold" }}>Operator</label>
-                                                   <Dropdown
-                                                       options={operatorTypeOptions}
-                                                       placeholder={"Operator Type"}
-                                                       multiple
-                                                       selection
-                                                       value={formData.metricCriteria[i].operatorType}
-                                                       onChange={(event, data) => {changeMetricCriteria("operatorType", data, i); setOperatorType(data.value)}}
+                                                        <Form.Field
+                                                            width={4}
+                                                            control={Select}
+                                                            label={"Operator Type"}
+                                                            options={operatorTypeOptions}
+                                                            placeholder={"Type"}
+                                                            value={theForm.metricCriteria[i].operatorType}
+                                                            onChange={(event, data) => changeMetricCriteria("operatorType", data, i)}
+                                                            disabled={i === 0 ? true : false}
                                                         />
-                                               </Form.Field>
-                                           </Form>
-                                              );
+                                                    </Form.Group>
+                                                );
                                             })}
-                                       </Grid.Column>
-                                   </Grid.Row>
-                               </Grid>
-                           </Segment>
-                       </Container>
-                   </Grid.Row>
-                   <Divider hidden></Divider>
-                   <Grid.Row>
-                       <Container>
-                           <Segment>
-                               <h3>Results</h3>
-                               <div className='App-container'>
-        <table style={{position: 'relative', left: 20}}>
-          <thead>
-            <tr>
-              <th>RestaurantID</th>
-              <th>BusDate</th>
-              <th>Order #</th>
-              <th>OrderTime</th>
-              <th>TotalAmount</th>
-              <th>NetAmount</th>
-              <th>ItemsSold</th>
-              <th>BeverageQty</th>
-              <th>DiscountAmount</th>
-              <th>ItemsDeleted</th>
-              <th>DiscountRatio</th>            
-              <th>Refund</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td>2020-09-22</td>
-              <td>1</td>
-              <td>2020-09-22 00:07:00</td>
-              <td>2</td>
-              <td>1.5</td>
-              <td>1</td>
-              <td>1</td>
-              <td>1</td>
-              <td>1</td>
-              <td>1</td>
-              <td>1</td>
-              <td>1</td>
 
-            </tr>
-          </tbody>
-
-        </table>
-      </div>
-                           </Segment>
-                       </Container>
-                   </Grid.Row>
-               </Grid>
-           </div>
-       );
-
+                                            <Form.Group>
+                                                <Form.Field>
+                                                    <Button type="button" onClick={() => addCriteria()} color="blue">Add Criteria</Button>
+                                                </Form.Field>
+                                                
+                                            </Form.Group>
+                                            <Form.Field>
+                                                <Button color="olive" type="submit">
+                                                    Submit
+                                                </Button>
+                                            </Form.Field>
+                                        </Form>
+                                    </Grid.Column>
+                                </Grid.Row>
+                            </Grid>
+                        </Segment>
+                    </Container>
+                </Grid.Row>
+                <Grid.Row>
+                    <Container className="Container" fluid>
+                        <Segment>
+                            <Grid>
+                                <Grid.Row columns={2}>
+                                    <Grid.Column textAlign="left">
+                                        <h2>Results</h2>
+                                    </Grid.Column>
+                                    <Grid.Column textAlign="right">
+                                        {theResults.length >= itemsPerPage && 
+                                            <Pagination
+                                                className={"Page"}
+                                                size="small"
+                                                activePage={activePage}
+                                                onPageChange={(event, data) => changePage(data)}
+                                                ellipsisItem={{
+                                                    content: <Icon name="ellipsis horizontal" />,
+                                                    icon: true
+                                                }}
+                                                firstItem={null}
+                                                lastItem={null}
+                                                prevItem={null}
+                                                nextItem={null}
+                                                totalPages={Math.ceil(theResults.length / itemsPerPage)}
+                                            />
+                                        }
+                                    </Grid.Column>
+                                </Grid.Row>
+                            </Grid>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Restaurant Id</th>
+                                        <th>
+                                            Transaction Date
+                                        </th>
+                                        <th>
+                                            Transaction Time
+                                        </th>
+                                        <th>
+                                            Ticket Number
+                                        </th>
+                                        {metricDefinitions.map((m, i) => {
+                                            return (
+                                                <th key={i}>
+                                                    {m.alias}
+                                                </th>
+                                            );
+                                        })}
+                                    </tr>
+                                </thead>
+                                {theResults &&
+                                    <tbody>
+                                        {slicedtheResults.map((arr, i) => {
+                                            return (
+                                                <tr key={i}>
+                                                    <td>
+                                                        {arr["restaurantId"]}
+                                                    </td>
+                                                    <td>
+                                                        {formatData(arr["busDt"], "Date", 0)}
+                                                    </td>
+                                                    <td>
+                                                        {formatData(arr["orderTime"], "Time", 0)}
+                                                    </td>
+                                                    <td>
+                                                        {arr["orderNumber"]}
+                                                    </td>
+                                                    {
+                                                        metricDefinitions.map((m, i2) => {
+                                                            const fieldName = m.metricCode[0].toLowerCase() + m.metricCode.substring(1);
+                                                            return (
+                                                                <td key={i2}>
+                                                                    {formatData(arr[fieldName], m.dataType, m.decimalPlaces)}
+                                                                </td>
+                                                            );
+                                                        })
+                                                    }
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                }
+                            </table>
+                        </Segment>
+                    </Container>
+                </Grid.Row>
+            </Grid>
+        </div>  
+    );
 }
 
- 
-
 export default App;
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
